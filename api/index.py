@@ -31,6 +31,9 @@ def query_hf_api(text: str) -> str:
         "parameters": {
             "max_length": 150,
             "min_length": 15
+        },
+        "options": {
+            "wait_for_model": True
         }
     }
     
@@ -41,17 +44,20 @@ def query_hf_api(text: str) -> str:
     
     for url in urls:
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=15)
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            result = response.json()
             if response.status_code == 200:
-                result = response.json()
                 if isinstance(result, list) and len(result) > 0 and "summary_text" in result[0]:
                     return result[0]["summary_text"]
                 elif isinstance(result, dict) and "summary_text" in result:
                     return result["summary_text"]
+            elif isinstance(result, dict) and "estimated_time" in result:
+                wait_sec = round(result["estimated_time"])
+                return f"Model is warming up on cloud server (~{wait_sec}s). Please click Summarize again in a few seconds!"
         except Exception:
             continue
 
-    return "Model is initializing, please try again in a few seconds."
+    return "Model is initializing. Please click Summarize again in a few seconds."
 
 @app.post("/summarize/")
 def summarize(dialogue_input: DialogueInput):
