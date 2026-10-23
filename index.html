@@ -1,219 +1,2645 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Summarizer - Neumorphic UI</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    <title>Briefly AI — Intelligent Text Summarization Workspace</title>
+    <meta name="description" content="Transform long text, articles, PDFs, and conversations into clear, structured summaries with Briefly AI.">
 
-        * {
+    <!-- Fonts: Newsreader (Editorial Serif) + Plus Jakarta Sans (Clean Modern Sans) + JetBrains Mono (Metrics) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- PDF.js for client-side PDF document parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+        /* -------------------------------------------------------------
+           CSS CUSTOM PROPERTIES & DESIGN SYSTEM
+           Editorial Warm Ivory Palette + Dark Mode Complement
+        ------------------------------------------------------------- */
+        :root {
+            /* Light Theme (Warm Ivory / Editorial) */
+            --bg-canvas: #FAF7F2;
+            --bg-surface: #FFFFFF;
+            --bg-surface-subtle: #F3EFE7;
+            --bg-surface-elevated: #FFFFFF;
+            --border-subtle: #E6E1D6;
+            --border-strong: #D5CEC1;
+            --border-focus: #C84B26;
+
+            --text-primary: #1C1917;
+            --text-secondary: #57524C;
+            --text-muted: #8C847B;
+
+            /* Accent: Burnt Orange / Terracotta */
+            --accent: #C84B26;
+            --accent-hover: #B03E1B;
+            --accent-active: #983415;
+            --accent-subtle: #FDF2EE;
+            --accent-border: #F6D6CC;
+            --accent-text: #FFFFFF;
+
+            /* Utility / Badges */
+            --badge-bg: #EAE5DB;
+            --badge-text: #44403C;
+            --success-bg: #EDF7EE;
+            --success-text: #1E6B24;
+            --error-bg: #FDF2F2;
+            --error-text: #B91C1C;
+
+            /* Shadows */
+            --shadow-xs: 0 1px 2px rgba(28, 25, 23, 0.04);
+            --shadow-sm: 0 2px 6px rgba(28, 25, 23, 0.05);
+            --shadow-md: 0 6px 18px rgba(28, 25, 23, 0.07);
+            --shadow-lg: 0 14px 34px rgba(28, 25, 23, 0.09);
+
+            /* Typography */
+            --font-serif: 'Newsreader', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+
+            /* Transitions */
+            --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+            --container-max: 1240px;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-pill: 9999px;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme (Deep Charcoal / Warm Dark) */
+            --bg-canvas: #111215;
+            --bg-surface: #181A1F;
+            --bg-surface-subtle: #20232A;
+            --bg-surface-elevated: #262932;
+            --border-subtle: #2B2F38;
+            --border-strong: #3D424F;
+            --border-focus: #E05A30;
+
+            --text-primary: #F4F3EF;
+            --text-secondary: #A6ABB5;
+            --text-muted: #6E7480;
+
+            --accent: #E05A30;
+            --accent-hover: #EC6D45;
+            --accent-active: #D44E25;
+            --accent-subtle: #2C1B16;
+            --accent-border: #4D281F;
+            --accent-text: #FFFFFF;
+
+            --badge-bg: #22252C;
+            --badge-text: #BAC0CB;
+            --success-bg: #142E1B;
+            --success-text: #68D391;
+            --error-bg: #331518;
+            --error-text: #FEB2B2;
+
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        /* -------------------------------------------------------------
+           RESET & GLOBAL STYLES
+        ------------------------------------------------------------- */
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
-            font-family: 'Inter', 'Roboto', system-ui, -apple-system, sans-serif;
-            background-color: #E0E5EC;
-            color: #2D3748;
+            font-family: var(--font-sans);
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color var(--transition-normal), color var(--transition-normal);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button, input, textarea, select {
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: var(--container-max);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* -------------------------------------------------------------
+           HEADER & NAVIGATION
+        ------------------------------------------------------------- */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: rgba(250, 247, 242, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background-color var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        [data-theme="dark"] .site-header {
+            background-color: rgba(17, 18, 21, 0.88);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), #E0734F);
+            color: #FFFFFF;
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px 20px;
+            box-shadow: 0 2px 8px rgba(200, 75, 38, 0.25);
         }
 
-        .main-card {
-            width: 100%;
-            max-width: 650px;
-            background-color: #E0E5EC;
-            border-radius: 24px;
-            padding: 35px;
-            box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.8);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2D3748;
-            letter-spacing: -0.5px;
-            margin-bottom: 6px;
-        }
-
-        .header p {
-            font-size: 0.95rem;
-            color: #4A5568;
-            font-weight: 500;
-        }
-
-        .layout-column {
+        .brand-text {
+            font-size: 1.25rem;
+            color: var(--text-primary);
             display: flex;
-            flex-direction: column;
-            gap: 22px;
+            align-items: center;
+            gap: 8px;
         }
 
-        .box {
-            background-color: #E0E5EC;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.8);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .box-title {
-            font-size: 1.1rem;
+        .brand-text .brand-title {
+            font-family: var(--font-serif);
             font-weight: 600;
-            color: #2D3748;
-            margin-bottom: 14px;
+            font-size: 1.45rem;
+            letter-spacing: -0.01em;
         }
 
-        textarea {
-            width: 100%;
-            height: 160px;
-            background-color: #E0E5EC;
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            color: #2D3748;
-            resize: vertical;
-            box-shadow: inset 6px 6px 12px rgba(163, 177, 198, 0.6), inset -6px -6px 12px rgba(255, 255, 255, 0.8);
-            transition: all 0.2s ease;
+        .brand-badge {
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border-radius: var(--radius-pill);
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            border: 1px solid var(--border-subtle);
         }
 
-        textarea:focus {
-            outline: none;
-            box-shadow: inset 8px 8px 14px rgba(163, 177, 198, 0.7), inset -8px -8px 14px rgba(255, 255, 255, 0.9);
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
         }
 
-        textarea::placeholder {
-            color: #A0AEC0;
+        .nav-link {
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: color var(--transition-fast);
         }
 
-        .summarize-btn {
-            width: 100%;
-            background-color: #E0E5EC;
-            border: none;
-            border-radius: 16px;
-            padding: 16px 24px;
-            font-family: inherit;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #2D3748;
+        .nav-link:hover {
+            color: var(--accent);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .theme-toggle-btn {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            text-align: center;
-            letter-spacing: 0.5px;
-            box-shadow: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.8);
-            transition: all 0.2s ease;
-            user-select: none;
+            transition: all var(--transition-fast);
         }
 
-        .summarize-btn:hover {
-            color: #3182CE;
-            box-shadow: 11px 11px 18px rgba(163, 177, 198, 0.7), -11px -11px 18px rgba(255, 255, 255, 0.9);
+        .theme-toggle-btn:hover {
+            background-color: var(--bg-surface-subtle);
+            color: var(--text-primary);
+            border-color: var(--border-strong);
+        }
+
+        .btn-header-cta {
+            background-color: var(--accent);
+            color: var(--accent-text);
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-header-cta:hover {
+            background-color: var(--accent-hover);
             transform: translateY(-1px);
         }
 
-        .summarize-btn:active {
-            box-shadow: inset 6px 6px 12px rgba(163, 177, 198, 0.6), inset -6px -6px 12px rgba(255, 255, 255, 0.8);
-            transform: translateY(1px);
+        /* -------------------------------------------------------------
+           HERO SECTION
+        ------------------------------------------------------------- */
+        .hero-section {
+            padding: 60px 0 36px;
+            position: relative;
         }
 
-        .summarize-btn:disabled {
-            color: #A0AEC0;
+        .hero-layout {
+            max-width: 840px;
+        }
+
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent);
+            background-color: var(--accent-subtle);
+            border: 1px solid var(--accent-border);
+            padding: 6px 14px;
+            border-radius: var(--radius-pill);
+            margin-bottom: 20px;
+        }
+
+        .hero-headline {
+            font-family: var(--font-serif);
+            font-size: 3.35rem;
+            line-height: 1.12;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .hero-headline span.accent {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .hero-subheading {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            max-width: 580px;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--accent-text);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 14px 24px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-surface-subtle);
+            border-color: var(--border-strong);
+        }
+
+        .hero-highlights {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .hero-highlight-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .hero-highlight-item svg {
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* -------------------------------------------------------------
+           MAIN WORKSPACE CONTAINER
+        ------------------------------------------------------------- */
+        .workspace-section {
+            padding: 24px 0 60px;
+        }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: stretch;
+        }
+
+        .panel-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .panel-card:focus-within {
+            border-color: var(--border-strong);
+            box-shadow: var(--shadow-md);
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            background-color: var(--bg-surface-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .panel-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-metrics {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
+        .metric-pill {
+            background-color: var(--bg-surface);
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .metric-pill.compression-badge {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Toolbar Actions */
+        .panel-toolbar {
+            padding: 10px 20px;
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-toolbar {
+            background: none;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-toolbar:hover {
+            background-color: var(--bg-surface-subtle);
+            color: var(--text-primary);
+            border-color: var(--border-strong);
+        }
+
+        .btn-toolbar.btn-danger-subtle:hover {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            border-color: transparent;
+        }
+
+        /* Workspace Textarea */
+        .input-area-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 380px;
+        }
+
+        .source-textarea {
+            width: 100%;
+            height: 100%;
+            min-height: 380px;
+            padding: 20px;
+            border: none;
+            resize: vertical;
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: 0.98rem;
+            line-height: 1.7;
+            outline: none;
+            transition: background-color var(--transition-normal);
+        }
+
+        .source-textarea::placeholder {
+            color: var(--text-muted);
+            font-style: normal;
+        }
+
+        /* Drag & Drop Overlay */
+        .drop-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(200, 75, 38, 0.08);
+            border: 2px dashed var(--accent);
+            border-radius: var(--radius-md);
+            margin: 8px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .drop-overlay.active {
+            display: flex;
+        }
+
+        /* Workspace Controls: Styles & Length */
+        .panel-footer-controls {
+            padding: 18px 20px;
+            background-color: var(--bg-surface-subtle);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .controls-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .segmented-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background-color: var(--bg-canvas);
+            padding: 3px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            gap: 3px;
+        }
+
+        .segmented-group.length-group {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .segmented-btn {
+            background: none;
+            border: none;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .segmented-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .segmented-btn.active {
+            background-color: var(--bg-surface);
+            color: var(--accent);
+            box-shadow: var(--shadow-xs);
+            font-weight: 700;
+        }
+
+        [data-theme="dark"] .segmented-btn.active {
+            background-color: var(--bg-surface-elevated);
+            color: var(--accent);
+        }
+
+        .submit-action-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 4px;
+        }
+
+        .btn-summarize {
+            flex: 1;
+            background-color: var(--accent);
+            color: var(--accent-text);
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            padding: 13px 20px;
+            font-size: 0.98rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .btn-summarize:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-summarize:disabled {
+            opacity: 0.65;
             cursor: not-allowed;
-            box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.5), inset -4px -4px 8px rgba(255, 255, 255, 0.7);
             transform: none;
         }
 
-        .output-content {
-            background-color: #E0E5EC;
-            border-radius: 12px;
-            padding: 18px;
-            box-shadow: inset 6px 6px 12px rgba(163, 177, 198, 0.6), inset -6px -6px 12px rgba(255, 255, 255, 0.8);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #2D3748;
-            min-height: 120px;
+        .shortcut-hint {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            opacity: 0.75;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
-        .placeholder-text {
-            color: #A0AEC0;
+        /* -------------------------------------------------------------
+           OUTPUT & RESULTS PANEL
+        ------------------------------------------------------------- */
+        .output-body {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            position: relative;
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Empty State */
+        .output-empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-illustration {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: var(--bg-surface-subtle);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            margin-bottom: 18px;
+        }
+
+        .empty-title {
+            font-family: var(--font-serif);
+            font-size: 1.35rem;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .empty-desc {
+            font-size: 0.9rem;
+            max-width: 320px;
+            line-height: 1.5;
+        }
+
+        /* Loading Skeleton */
+        .output-loading-state {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px 0;
+            width: 100%;
+        }
+
+        .output-loading-state.active {
+            display: flex;
+        }
+
+        .skeleton-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-subtle);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .skeleton-status {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .skeleton-bar {
+            height: 14px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg-surface-subtle) 25%, var(--border-subtle) 50%, var(--bg-surface-subtle) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Active Result Content */
+        .summary-result-container {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .summary-result-container.active {
+            display: flex;
+        }
+
+        .summary-style-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--accent);
+            background-color: var(--accent-subtle);
+            border: 1px solid var(--accent-border);
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            align-self: flex-start;
+        }
+
+        .summary-content {
+            font-size: 1.04rem;
+            line-height: 1.75;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .summary-content ul.bullet-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .summary-content ul.bullet-list li {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .summary-content ul.bullet-list li::before {
+            content: "•";
+            position: absolute;
+            left: 6px;
+            color: var(--accent);
+            font-size: 1.2rem;
+            line-height: 1.5;
+        }
+
+        .summary-content .takeaway-item {
+            padding: 12px 16px;
+            background-color: var(--bg-surface-subtle);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 10px;
+        }
+
+        .summary-content .takeaway-tag {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Feedback Alerts */
+        .alert-banner {
+            margin: 12px 20px 0;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .alert-banner.active {
+            display: flex;
+        }
+
+        .alert-banner.error {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid rgba(185, 28, 28, 0.2);
+        }
+
+        .alert-banner.success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid rgba(30, 107, 36, 0.2);
+        }
+
+        /* -------------------------------------------------------------
+           SUMMARY HISTORY DRAWER / COMPONENT
+        ------------------------------------------------------------- */
+        .history-section {
+            padding: 10px 0 50px;
+        }
+
+        .history-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 18px;
+        }
+
+        .history-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-notice {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .history-empty-msg {
+            color: var(--text-muted);
+            font-size: 0.9rem;
             font-style: italic;
+            padding: 20px 0;
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        .history-item {
+            background-color: var(--bg-surface-subtle);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            border-color: var(--border-strong);
+            background-color: var(--bg-surface-elevated);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .history-item-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .history-item-badge {
+            background-color: var(--accent-subtle);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+        }
+
+        .history-item-snippet {
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .history-item-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            padding-top: 8px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .btn-history-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color var(--transition-fast);
+        }
+
+        .btn-history-delete:hover {
+            color: var(--error-text);
+        }
+
+        /* -------------------------------------------------------------
+           FEATURES SECTION
+        ------------------------------------------------------------- */
+        .features-section {
+            padding: 60px 0;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .section-header-centered {
+            text-align: center;
+            max-width: 680px;
+            margin: 0 auto 48px;
+        }
+
+        .section-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: 2.35rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+        }
+
+        .section-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: all var(--transition-fast);
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-strong);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background-color: var(--accent-subtle);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--accent-border);
+        }
+
+        .feature-title {
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .feature-desc {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* -------------------------------------------------------------
+           FOOTER
+        ------------------------------------------------------------- */
+        .site-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-subtle);
+            background-color: var(--bg-surface);
+            padding: 36px 0;
+            transition: background-color var(--transition-normal);
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .footer-logo {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .footer-sub {
+            font-size: 0.84rem;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--text-primary);
+            color: var(--bg-canvas);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            animation: slideUp 0.25s ease-out;
+        }
+
+        .toast.active {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* -------------------------------------------------------------
+           RESPONSIVE BREAKPOINTS
+        ------------------------------------------------------------- */
+        @media (max-width: 960px) {
+            .hero-layout {
+                grid-template-columns: 1fr;
+                gap: 36px;
+            }
+
+            .hero-headline {
+                font-size: 2.75rem;
+            }
+
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .segmented-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-inner {
+                height: 64px;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .hero-headline {
+                font-size: 2.25rem;
+            }
+
+            .hero-subheading {
+                font-size: 1rem;
+            }
+
+            .segmented-group {
+                grid-template-columns: 1fr;
+            }
+
+            .segmented-group.length-group {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="main-card">
-        <div class="header">
-            <h1>Text Summarizer</h1>
-            <p>Write or Paste your content below for quick summarization.</p>
-        </div>
 
-        <form id="summarization-form" class="layout-column">
-            <!-- Top Input Box -->
-            <div class="box">
-                <div class="box-title">Source Content</div>
-                <textarea id="dialogue-input" placeholder="Enter your content here..." required></textarea>
-            </div>
+    <!-- ==========================================
+         HEADER
+    =========================================== -->
+    <header class="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <!-- Brand Lockup -->
+                <a href="#" class="brand-link" aria-label="Briefly AI Homepage">
+                    <div class="brand-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-title">Briefly AI</span>
+                        <span class="brand-badge">Text Summarizer</span>
+                    </div>
+                </a>
 
-            <!-- Middle Summarize Button -->
-            <button type="submit" id="submit-btn" class="summarize-btn">
-                Summarize
-            </button>
+                <!-- Navigation Links -->
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="#workspace" class="nav-link">Workspace</a></li>
+                        <li><a href="#features" class="nav-link">Features</a></li>
+                        <li><a href="#history" class="nav-link">History</a></li>
+                    </ul>
+                </nav>
 
-            <!-- Bottom Output Box -->
-            <div class="box">
-                <div class="box-title">Content Summary</div>
-                <div class="output-content">
-                    <p id="summary-text" class="placeholder-text">Your summary will appear here after clicking Summarize...</p>
+                <!-- Actions: Theme Toggle & Primary Action -->
+                <div class="header-actions">
+                    <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Toggle light and dark theme" title="Toggle Theme">
+                        <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                    <a href="#workspace" class="btn-header-cta">
+                        Start Summarizing
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </a>
                 </div>
             </div>
-        </form>
+        </div>
+    </header>
+
+    <!-- ==========================================
+         HERO SECTION
+    =========================================== -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-layout">
+                <div class="hero-content">
+                    <div class="hero-pill">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        ✨ AI Text Summarization · Free & Instant Access
+                    </div>
+                    <h1 class="hero-headline">
+                        Turn long text into <span class="accent">clear ideas.</span>
+                    </h1>
+                    <p class="hero-subheading">
+                        Briefly condenses lengthy reports, research articles, meeting dialogues, and documents into clear, readable summaries with full precision and custom formats.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#workspace" class="btn-primary" id="hero-start-btn">
+                            Start Summarizing
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                        <button class="btn-secondary" id="hero-sample-btn" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                            Try Sample Text
+                        </button>
+                    </div>
+                    <div class="hero-highlights">
+                        <div class="hero-highlight-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            <span>Client-Side Privacy</span>
+                        </div>
+                        <div class="hero-highlight-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span>Reading Time Estimates</span>
+                        </div>
+                        <div class="hero-highlight-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 11 12 14 22 4"></polyline>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                            </svg>
+                            <span>4 Distillation Modes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         MAIN SUMMARIZATION WORKSPACE
+    =========================================== -->
+    <section class="workspace-section" id="workspace">
+        <div class="container">
+            <div class="workspace-grid">
+
+                <!-- LEFT PANEL: SOURCE TEXT INPUT -->
+                <div class="panel-card" id="input-card">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <div class="panel-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                Source Text
+                            </div>
+                        </div>
+                        <div class="panel-metrics">
+                            <span class="metric-pill" id="input-words">0 words</span>
+                            <span class="metric-pill" id="input-chars">0 chars</span>
+                            <span class="metric-pill" id="input-reading-time">~0 min read</span>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar Actions -->
+                    <div class="panel-toolbar">
+                        <div class="toolbar-group">
+                            <button type="button" class="btn-toolbar" id="btn-paste" title="Paste text from clipboard">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                </svg>
+                                Paste
+                            </button>
+                            <button type="button" class="btn-toolbar" id="btn-sample-cycle" title="Load next curated sample">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="1 4 1 10 7 10"></polyline>
+                                    <polyline points="23 20 23 14 17 14"></polyline>
+                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                </svg>
+                                Sample Text
+                            </button>
+                            <label class="btn-toolbar" for="file-upload-input" title="Upload a TXT or PDF document" style="cursor: pointer;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Upload File (.txt, .pdf)
+                            </label>
+                            <input type="file" id="file-upload-input" accept=".txt,.pdf" style="display: none;">
+                        </div>
+                        <div class="toolbar-group">
+                            <button type="button" class="btn-toolbar btn-danger-subtle" id="btn-clear-input" title="Clear text">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input Alert Banner -->
+                    <div class="alert-banner" id="input-alert">
+                        <span id="input-alert-text">Error message</span>
+                        <button type="button" class="btn-toolbar" id="btn-close-input-alert">✕</button>
+                    </div>
+
+                    <!-- Textarea Area with Drag-Drop Support -->
+                    <div class="input-area-wrapper">
+                        <textarea
+                            id="dialogue-input"
+                            class="source-textarea"
+                            placeholder="Write or paste your article, report, meeting dialogue, or document here... or drag and drop a .txt or .pdf file directly."
+                            aria-label="Source text to summarize"
+                            spellcheck="true"
+                        ></textarea>
+                        <div class="drop-overlay" id="drop-overlay">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span>Drop your .txt or .pdf document here</span>
+                        </div>
+                    </div>
+
+                    <!-- Controls: Style & Length -->
+                    <div class="panel-footer-controls">
+                        <!-- Summary Style -->
+                        <div class="controls-row">
+                            <div class="controls-label">
+                                <span>Summary Style</span>
+                                <span id="active-style-desc" style="text-transform: none; font-weight: normal;">Concise overview</span>
+                            </div>
+                            <div class="segmented-group" role="radiogroup" aria-label="Summary Style">
+                                <button type="button" class="segmented-btn active" data-style="quick" role="radio" aria-checked="true">
+                                    Quick Summary
+                                </button>
+                                <button type="button" class="segmented-btn" data-style="detailed" role="radio" aria-checked="false">
+                                    Detailed
+                                </button>
+                                <button type="button" class="segmented-btn" data-style="bullet" role="radio" aria-checked="false">
+                                    Bullet Points
+                                </button>
+                                <button type="button" class="segmented-btn" data-style="takeaways" role="radio" aria-checked="false">
+                                    Key Takeaways
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Summary Length -->
+                        <div class="controls-row">
+                            <div class="controls-label">
+                                <span>Summary Length</span>
+                                <span id="active-length-desc" style="text-transform: none; font-weight: normal;">Balanced ~40% length</span>
+                            </div>
+                            <div class="segmented-group length-group" role="radiogroup" aria-label="Summary Length">
+                                <button type="button" class="segmented-btn" data-length="short" role="radio" aria-checked="false">
+                                    Short (25%)
+                                </button>
+                                <button type="button" class="segmented-btn active" data-length="medium" role="radio" aria-checked="true">
+                                    Medium (40%)
+                                </button>
+                                <button type="button" class="segmented-btn" data-length="long" role="radio" aria-checked="false">
+                                    Long (60%)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Summarize Action -->
+                        <div class="submit-action-row">
+                            <button type="button" id="btn-submit" class="btn-summarize">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                                <span id="btn-submit-text">Summarize Text</span>
+                                <span class="shortcut-hint">Ctrl + Enter</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT PANEL: GENERATED SUMMARY RESULTS -->
+                <div class="panel-card" id="output-card">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <div class="panel-title">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                Executive Summary
+                            </div>
+                        </div>
+                        <div class="panel-metrics">
+                            <span class="metric-pill" id="output-words">0 words</span>
+                            <span class="metric-pill compression-badge" id="output-compression" style="display: none;">−0%</span>
+                            <span class="metric-pill" id="output-reading-time">~0 min read</span>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar Actions -->
+                    <div class="panel-toolbar">
+                        <div class="toolbar-group">
+                            <button type="button" class="btn-toolbar" id="btn-copy-summary" title="Copy summary to clipboard" disabled>
+                                <svg id="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                <span id="copy-btn-text">Copy Summary</span>
+                            </button>
+                            <button type="button" class="btn-toolbar" id="btn-download-txt" title="Download summary as TXT file" disabled>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download TXT
+                            </button>
+                        </div>
+                        <div class="toolbar-group">
+                            <button type="button" class="btn-toolbar btn-danger-subtle" id="btn-clear-output" title="Reset summary" disabled>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Output Alert Banner -->
+                    <div class="alert-banner" id="output-alert">
+                        <span id="output-alert-text">Status message</span>
+                        <button type="button" class="btn-toolbar" id="btn-close-output-alert">✕</button>
+                    </div>
+
+                    <!-- Output Content Body -->
+                    <div class="output-body">
+                        <!-- Empty State -->
+                        <div class="output-empty-state" id="output-empty-state">
+                            <div class="empty-illustration">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </div>
+                            <h3 class="empty-title">Your summary will appear here</h3>
+                            <p class="empty-desc">
+                                Enter your text on the left, pick your preferred summary format and length, then click <strong>Summarize Text</strong>.
+                            </p>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div class="output-loading-state" id="output-loading-state">
+                            <div class="skeleton-header">
+                                <div class="skeleton-spinner"></div>
+                                <span class="skeleton-status">Condensing document and ranking salient sentences...</span>
+                            </div>
+                            <div class="skeleton-bar" style="width: 100%;"></div>
+                            <div class="skeleton-bar" style="width: 92%;"></div>
+                            <div class="skeleton-bar" style="width: 96%;"></div>
+                            <div class="skeleton-bar" style="width: 78%;"></div>
+                            <div class="skeleton-bar" style="width: 85%;"></div>
+                            <div class="skeleton-bar" style="width: 60%;"></div>
+                        </div>
+
+                        <!-- Active Result View -->
+                        <div class="summary-result-container" id="summary-result-container">
+                            <div class="summary-style-indicator" id="summary-style-indicator">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                                <span id="summary-style-indicator-text">Quick Summary · Medium</span>
+                            </div>
+                            <div class="summary-content" id="summary-content-text">
+                                <!-- Dynamic rendered summary -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SUMMARY HISTORY SECTION
+    =========================================== -->
+    <section class="history-section" id="history">
+        <div class="container">
+            <div class="history-card">
+                <div class="history-header">
+                    <div class="history-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 14 14"></polyline>
+                        </svg>
+                        Recent Summaries
+                    </div>
+                    <div class="toolbar-group">
+                        <span class="history-notice">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Stored locally in this browser
+                        </span>
+                        <button type="button" class="btn-toolbar btn-danger-subtle" id="btn-clear-history" title="Clear all local history">
+                            Clear History
+                        </button>
+                    </div>
+                </div>
+
+                <div class="history-list" id="history-list">
+                    <!-- Populated dynamically via JS -->
+                    <div class="history-empty-msg" id="history-empty-msg">
+                        No recent summaries saved yet. Generated summaries will appear here for easy reopening.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         FEATURES SECTION
+    =========================================== -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header-centered">
+                <span class="section-tag">Production Quality AI</span>
+                <h2 class="section-title">Engineered for deep comprehension.</h2>
+                <p class="section-desc">
+                    Briefly merges classical information retrieval with neural transformer architectures to deliver human-readable summaries that respect your time and preserve critical nuance.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Dual Architecture Engine</h3>
+                    <p class="feature-desc">
+                        Seamlessly switch between fine-tuned Google T5 Transformer deep learning in local PyTorch environments and lightweight sentence ranking for high-speed serverless deployments.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">4 Adaptive Output Formats</h3>
+                    <p class="feature-desc">
+                        Choose Quick Overview for executive soundbites, Detailed Brief for comprehensive context, Bullet Points for fast scanning, or Key Takeaways for labeled insights.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">PDF & TXT Document Parser</h3>
+                    <p class="feature-desc">
+                        Directly drag, drop, and extract text from multi-page PDF documents and raw text files right in your browser without requiring unneeded cloud file uploads.
+                    </p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Privacy & Local Export</h3>
+                    <p class="feature-desc">
+                        Your text is processed securely with zero server tracking. Download structured summary files with single-click TXT export or review your recent history saved locally.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         FOOTER
+    =========================================== -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <div class="footer-logo">Briefly AI</div>
+                    <div class="footer-sub">Text-Summarizer-Web-Application · Open-source editorial workspace</div>
+                </div>
+                <ul class="footer-links">
+                    <li><a href="#workspace">Summarizer</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#history">History</a></li>
+                    <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div class="toast" id="toast-notification" role="status" aria-live="polite">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="toast-message">Copied to clipboard!</span>
     </div>
 
+    <!-- ==========================================
+         FRONTEND JAVASCRIPT LOGIC
+    =========================================== -->
     <script>
-        document.getElementById("summarization-form").addEventListener("submit", async (e) => {
-            e.preventDefault();
-        
-            const dialogueInput = document.getElementById("dialogue-input");
-            const summaryText = document.getElementById("summary-text");
-            const submitButton = document.getElementById("submit-btn");
-        
-            const dialogue = dialogueInput.value.trim();
-            if (!dialogue) return;
-        
-            summaryText.classList.remove("placeholder-text");
-            summaryText.innerText = "Processing summary...";
-            submitButton.disabled = true;
-        
-            try {
-                const response = await fetch("/summarize/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ dialogue }),
-                });
-        
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-        
-                const data = await response.json();
-                summaryText.innerText = data.summary || "No summary returned.";
-            } catch (err) {
-                summaryText.innerText = `Error: ${err.message}`;
-            } finally {
-                submitButton.disabled = false;
+        (function() {
+            'use strict';
+
+            // Configure PDF.js Worker
+            if (window.pdfjsLib) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
             }
-        });
+
+            // ---------------------------------------------------------
+            // CURATED SAMPLE DOCUMENTS
+            // ---------------------------------------------------------
+            const SAMPLE_DOCS = [
+                {
+                    title: "AI & Neural Networks in Modern Medicine",
+                    text: `Artificial intelligence has transformed modern diagnostic medicine over the past decade. Healthcare providers increasingly employ machine learning models to detect subtle anomalies in magnetic resonance imaging (MRI) and computed tomography (CT) scans with unprecedented precision. These automated tools assist radiologists by highlighting suspicious nodules, vascular blockages, and tissue irregularities that might otherwise be overlooked during rapid clinical reviews. Financial institutions and insurance providers similarly rely on machine learning algorithms to verify billing patterns and detect fraudulent claims within milliseconds. In surgical environments, computer-vision guidance systems provide real-time spatial orientation, helping surgeons navigate critical anatomical structures during minimally invasive operations. Despite these profound technical advancements, substantial challenges persist regarding algorithmic bias, data privacy, and ethical AI governance. Medical researchers emphasize that transparent clinical validation and human-in-the-loop oversight remain indispensable as machine learning tools become deeply integrated into everyday healthcare infrastructure.`
+                },
+                {
+                    title: "Executive Product Strategy & Quarterly Goals",
+                    text: `During the quarterly executive leadership sync, the cross-functional product and engineering teams conducted an extensive review of platform adoption metrics and customer retention indicators. First-quarter revenue demonstrated a healthy 18% increase year-over-year, driven largely by enterprise subscriptions and recurring customer expansions in North American markets. However, customer success leads noted a slight uptick in churn among mid-market accounts, primarily attributing user drop-off to complex onboarding workflows and multi-step data integration requirements. The engineering leadership confirmed that technical debt in legacy authentication modules has slowed feature delivery cycles by approximately two weeks. To remedy these bottlenecks, the executive committee authorized a comprehensive three-pronged roadmap: first, refactoring the primary onboarding flow to achieve a sub-three-minute time-to-value; second, completing the unified API gateway migration before the end of the second quarter; and third, establishing dedicated regional customer success squads to provide white-glove onboarding for high-value accounts.`
+                },
+                {
+                    title: "Global Renewable Energy & Climate Transition",
+                    text: `The transition toward sustainable clean energy infrastructure reached significant milestones across international energy markets this past year. Rapid technological innovation in utility-scale photovoltaic solar panels and offshore wind turbine engineering has driven generation costs down by more than 40% over the last five years, making renewable energy economically superior to coal and traditional gas plants in most developing regions. Furthermore, breakthrough developments in lithium iron phosphate and next-generation solid-state battery chemistry are mitigating historic grid intermittency obstacles by storing excess peak production for high-demand evening hours. Nevertheless, global climate policy analysts emphasize that archaic transmission grid networks and protracted municipal permitting timelines remain primary hurdles preventing widespread clean power distribution. International financial institutions have initiated multi-billion dollar green infrastructure funds to modernize national high-voltage transmission lines, modernize municipal sub-stations, and incentivize developing economies to leapfrog fossil fuel generation.`
+                }
+            ];
+
+            let sampleIndex = 0;
+
+            // ---------------------------------------------------------
+            // DOM ELEMENTS
+            // ---------------------------------------------------------
+            const dialogueInput = document.getElementById('dialogue-input');
+            const submitBtn = document.getElementById('btn-submit');
+            const submitBtnText = document.getElementById('btn-submit-text');
+            const inputWordsEl = document.getElementById('input-words');
+            const inputCharsEl = document.getElementById('input-chars');
+            const inputReadingTimeEl = document.getElementById('input-reading-time');
+            const outputWordsEl = document.getElementById('output-words');
+            const outputCompressionEl = document.getElementById('output-compression');
+            const outputReadingTimeEl = document.getElementById('output-reading-time');
+
+            const btnPaste = document.getElementById('btn-paste');
+            const btnSampleCycle = document.getElementById('btn-sample-cycle');
+            const btnClearInput = document.getElementById('btn-clear-input');
+            const fileUploadInput = document.getElementById('file-upload-input');
+            const dropOverlay = document.getElementById('drop-overlay');
+            const inputCard = document.getElementById('input-card');
+
+            const btnCopySummary = document.getElementById('btn-copy-summary');
+            const copyBtnText = document.getElementById('copy-btn-text');
+            const btnDownloadTxt = document.getElementById('btn-download-txt');
+            const btnClearOutput = document.getElementById('btn-clear-output');
+
+            const outputEmptyState = document.getElementById('output-empty-state');
+            const outputLoadingState = document.getElementById('output-loading-state');
+            const summaryResultContainer = document.getElementById('summary-result-container');
+            const summaryContentText = document.getElementById('summary-content-text');
+            const summaryStyleIndicatorText = document.getElementById('summary-style-indicator-text');
+
+            const inputAlert = document.getElementById('input-alert');
+            const inputAlertText = document.getElementById('input-alert-text');
+            const btnCloseInputAlert = document.getElementById('btn-close-input-alert');
+
+            const outputAlert = document.getElementById('output-alert');
+            const outputAlertText = document.getElementById('output-alert-text');
+            const btnCloseOutputAlert = document.getElementById('btn-close-output-alert');
+
+            const activeStyleDesc = document.getElementById('active-style-desc');
+            const activeLengthDesc = document.getElementById('active-length-desc');
+
+            const historyList = document.getElementById('history-list');
+            const historyEmptyMsg = document.getElementById('history-empty-msg');
+            const btnClearHistory = document.getElementById('btn-clear-history');
+
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            const themeIconSun = document.getElementById('theme-icon-sun');
+            const themeIconMoon = document.getElementById('theme-icon-moon');
+            const toastNotification = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+
+            const heroSampleBtn = document.getElementById('hero-sample-btn');
+
+            // ---------------------------------------------------------
+            // STATE MANAGEMENT
+            // ---------------------------------------------------------
+            let selectedStyle = 'quick';
+            let selectedLength = 'medium';
+            let currentSummary = '';
+            let isProcessing = false;
+
+            const STYLE_DESCRIPTIONS = {
+                quick: "Concise overview",
+                detailed: "Comprehensive contextual breakdown",
+                bullet: "Key points formatted as easy-to-scan list",
+                takeaways: "Structured takeaways and core conclusions"
+            };
+
+            const LENGTH_DESCRIPTIONS = {
+                short: "Ultra-compact ~25% length",
+                medium: "Balanced ~40% length",
+                long: "In-depth ~60% length"
+            };
+
+            // ---------------------------------------------------------
+            // THEME TOGGLE (LIGHT / DARK)
+            // ---------------------------------------------------------
+            function initTheme() {
+                const savedTheme = localStorage.getItem('briefly_theme');
+                const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = savedTheme ? savedTheme : (systemPrefersDark ? 'dark' : 'light');
+                applyTheme(theme);
+            }
+
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('briefly_theme', theme);
+                if (theme === 'dark') {
+                    themeIconSun.style.display = 'inline-block';
+                    themeIconMoon.style.display = 'none';
+                } else {
+                    themeIconSun.style.display = 'none';
+                    themeIconMoon.style.display = 'inline-block';
+                }
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+            });
+
+            // ---------------------------------------------------------
+            // WORD COUNT & READING TIME HELPERS
+            // Standard reading speed: 200 words per minute (WPM)
+            // ---------------------------------------------------------
+            function calculateStats(text) {
+                if (!text || !text.trim()) {
+                    return { words: 0, chars: 0, readingTime: 0 };
+                }
+                const clean = text.trim();
+                const words = clean.split(/\s+/).filter(Boolean).length;
+                const chars = clean.length;
+                const readingMinutes = Math.ceil(words / 200);
+                return { words, chars, readingTime: readingMinutes };
+            }
+
+            function updateInputStats() {
+                const stats = calculateStats(dialogueInput.value);
+                inputWordsEl.innerText = `${stats.words.toLocaleString()} words`;
+                inputCharsEl.innerText = `${stats.chars.toLocaleString()} chars`;
+                inputReadingTimeEl.innerText = stats.words > 0 ? (stats.words < 200 ? '< 1 min read' : `~${stats.readingTime} min read`) : '~0 min read';
+            }
+
+            function updateOutputStats(originalWordCount, summaryWordCount) {
+                outputWordsEl.innerText = `${summaryWordCount.toLocaleString()} words`;
+                const summaryReadingMin = Math.ceil(summaryWordCount / 200);
+                outputReadingTimeEl.innerText = summaryWordCount > 0 ? (summaryWordCount < 200 ? '< 1 min read' : `~${summaryReadingMin} min read`) : '~0 min read';
+
+                if (originalWordCount > 0 && summaryWordCount > 0 && summaryWordCount < originalWordCount) {
+                    const ratio = Math.round((1 - (summaryWordCount / originalWordCount)) * 100);
+                    outputCompressionEl.innerText = `−${ratio}% compressed`;
+                    outputCompressionEl.style.display = 'inline-block';
+                } else {
+                    outputCompressionEl.style.display = 'none';
+                }
+            }
+
+            dialogueInput.addEventListener('input', updateInputStats);
+
+            // ---------------------------------------------------------
+            // STYLE & LENGTH CONTROLS
+            // ---------------------------------------------------------
+            document.querySelectorAll('[data-style]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-style]').forEach(b => {
+                        b.classList.remove('active');
+                        b.setAttribute('aria-checked', 'false');
+                    });
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-checked', 'true');
+                    selectedStyle = btn.dataset.style;
+                    activeStyleDesc.innerText = STYLE_DESCRIPTIONS[selectedStyle] || '';
+                });
+            });
+
+            document.querySelectorAll('[data-length]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-length]').forEach(b => {
+                        b.classList.remove('active');
+                        b.setAttribute('aria-checked', 'false');
+                    });
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-checked', 'true');
+                    selectedLength = btn.dataset.length;
+                    activeLengthDesc.innerText = LENGTH_DESCRIPTIONS[selectedLength] || '';
+                });
+            });
+
+            // ---------------------------------------------------------
+            // SAMPLE TEXT LOADER
+            // ---------------------------------------------------------
+            function loadSampleText() {
+                const sample = SAMPLE_DOCS[sampleIndex % SAMPLE_DOCS.length];
+                dialogueInput.value = sample.text;
+                sampleIndex++;
+                updateInputStats();
+                hideInputAlert();
+                showToast(`Loaded sample: "${sample.title}"`);
+                dialogueInput.focus();
+            }
+
+            btnSampleCycle.addEventListener('click', loadSampleText);
+
+            // ---------------------------------------------------------
+            // PASTE FROM CLIPBOARD
+            // ---------------------------------------------------------
+            btnPaste.addEventListener('click', async () => {
+                try {
+                    const clipText = await navigator.clipboard.readText();
+                    if (clipText && clipText.trim()) {
+                        dialogueInput.value = clipText.trim();
+                        updateInputStats();
+                        hideInputAlert();
+                        showToast("Pasted content from clipboard");
+                        dialogueInput.focus();
+                    } else {
+                        showInputAlert("Clipboard is empty or does not contain plain text.", "error");
+                    }
+                } catch (err) {
+                    showInputAlert("Unable to read clipboard automatically. Please use Ctrl+V or Command+V to paste directly.", "error");
+                }
+            });
+
+            // ---------------------------------------------------------
+            // CLEAR INPUT & RESET
+            // ---------------------------------------------------------
+            btnClearInput.addEventListener('click', () => {
+                dialogueInput.value = '';
+                updateInputStats();
+                hideInputAlert();
+                dialogueInput.focus();
+                showToast("Source text cleared");
+            });
+
+            btnClearOutput.addEventListener('click', () => {
+                currentSummary = '';
+                summaryContentText.innerHTML = '';
+                summaryResultContainer.classList.remove('active');
+                outputEmptyState.style.display = 'flex';
+                btnCopySummary.disabled = true;
+                btnDownloadTxt.disabled = true;
+                btnClearOutput.disabled = true;
+                updateOutputStats(0, 0);
+                hideOutputAlert();
+                showToast("Summary reset");
+            });
+
+            // ---------------------------------------------------------
+            // FILE UPLOAD & DRAG-AND-DROP (.TXT, .PDF)
+            // ---------------------------------------------------------
+            fileUploadInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFile(file);
+                fileUploadInput.value = '';
+            });
+
+            ['dragenter', 'dragover'].forEach(eventType => {
+                inputCard.addEventListener(eventType, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropOverlay.classList.add('active');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventType => {
+                inputCard.addEventListener(eventType, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropOverlay.classList.remove('active');
+                });
+            });
+
+            inputCard.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropOverlay.classList.remove('active');
+                const dt = e.dataTransfer;
+                if (dt.files && dt.files.length > 0) {
+                    handleFile(dt.files[0]);
+                }
+            });
+
+            async function handleFile(file) {
+                hideInputAlert();
+                const maxSizeBytes = 10 * 1024 * 1024; // 10MB limit
+                if (file.size > maxSizeBytes) {
+                    showInputAlert("The selected file exceeds the 10MB limit. Please upload a smaller document.", "error");
+                    return;
+                }
+
+                const fileName = file.name.toLowerCase();
+                if (!fileName.endsWith('.txt') && !fileName.endsWith('.pdf')) {
+                    showInputAlert("Unsupported file type. Please upload a .txt or .pdf document.", "error");
+                    return;
+                }
+
+                showToast(`Reading ${file.name}...`);
+
+                // 1. First attempt: call the backend /upload/ endpoint
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const res = await fetch("/upload/", {
+                        method: "POST",
+                        body: formData
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.text && data.text.trim()) {
+                            dialogueInput.value = data.text.trim();
+                            updateInputStats();
+                            showToast(`Successfully imported ${data.words || 0} words from ${file.name}`);
+                            dialogueInput.focus();
+                            return;
+                        }
+                    } else {
+                        const errData = await res.json().catch(() => null);
+                        if (errData && errData.detail) {
+                            console.warn("Backend upload note:", errData.detail);
+                        }
+                    }
+                } catch (apiErr) {
+                    console.warn("Backend file endpoint unavailable, using client-side reader:", apiErr);
+                }
+
+                // 2. Client-side fallback
+                if (fileName.endsWith('.txt')) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const content = event.target.result;
+                        if (!content || !content.trim()) {
+                            showInputAlert("The uploaded text file is empty.", "error");
+                            return;
+                        }
+                        dialogueInput.value = content.trim();
+                        updateInputStats();
+                        showToast(`Imported ${file.name}`);
+                        dialogueInput.focus();
+                    };
+                    reader.onerror = function() {
+                        showInputAlert("Failed to read text file. Please check file permissions.", "error");
+                    };
+                    reader.readAsText(file);
+                } else if (fileName.endsWith('.pdf')) {
+                    if (!window.pdfjsLib) {
+                        showInputAlert("PDF parsing library is unavailable. Please paste your text directly or use a .txt file.", "error");
+                        return;
+                    }
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = '';
+                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                            const page = await pdf.getPage(pageNum);
+                            const textContent = await page.getTextContent();
+                            const pageStrings = textContent.items.map(item => item.str).join(' ');
+                            fullText += pageStrings + '\n\n';
+                        }
+                        const trimmed = fullText.trim();
+                        if (!trimmed || trimmed.length < 20) {
+                            showInputAlert("Unable to extract readable text from this PDF. It may be a scanned document or image without an OCR layer.", "error");
+                            return;
+                        }
+                        dialogueInput.value = trimmed;
+                        updateInputStats();
+                        showToast(`Extracted ${pdf.numPages} pages from ${file.name}`);
+                        dialogueInput.focus();
+                    } catch (err) {
+                        showInputAlert(`Error parsing PDF document: ${err.message}`, "error");
+                    }
+                }
+            }
+
+            // ---------------------------------------------------------
+            // ALERTS & TOASTS
+            // ---------------------------------------------------------
+            function showInputAlert(msg, type = "error") {
+                inputAlertText.innerText = msg;
+                inputAlert.className = `alert-banner active ${type}`;
+            }
+
+            function hideInputAlert() {
+                inputAlert.className = 'alert-banner';
+            }
+
+            btnCloseInputAlert.addEventListener('click', hideInputAlert);
+
+            function showOutputAlert(msg, type = "error") {
+                outputAlertText.innerText = msg;
+                outputAlert.className = `alert-banner active ${type}`;
+            }
+
+            function hideOutputAlert() {
+                outputAlert.className = 'alert-banner';
+            }
+
+            btnCloseOutputAlert.addEventListener('click', hideOutputAlert);
+
+            let toastTimeout = null;
+            function showToast(msg) {
+                toastMessage.innerText = msg;
+                toastNotification.classList.add('active');
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => {
+                    toastNotification.classList.remove('active');
+                }, 3200);
+            }
+
+            // ---------------------------------------------------------
+            // FORMATTED RENDERING
+            // ---------------------------------------------------------
+            function renderFormattedSummary(summaryText, style) {
+                summaryContentText.innerHTML = '';
+
+                if (style === 'bullet') {
+                    const ul = document.createElement('ul');
+                    ul.className = 'bullet-list';
+                    const lines = summaryText.split('\n').filter(line => line.trim().length > 0);
+                    lines.forEach(line => {
+                        const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+                        if (cleanLine) {
+                            const li = document.createElement('li');
+                            li.innerText = cleanLine;
+                            ul.appendChild(li);
+                        }
+                    });
+                    summaryContentText.appendChild(ul);
+                } else if (style === 'takeaways') {
+                    const lines = summaryText.split('\n').filter(line => line.trim().length > 0);
+                    lines.forEach(line => {
+                        const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+                        if (!cleanLine) return;
+                        
+                        const colonIdx = cleanLine.indexOf(':');
+                        const card = document.createElement('div');
+                        card.className = 'takeaway-item';
+
+                        if (colonIdx > 0 && colonIdx < 35) {
+                            const tagText = cleanLine.substring(0, colonIdx).trim();
+                            const bodyText = cleanLine.substring(colonIdx + 1).trim();
+                            
+                            const tagSpan = document.createElement('span');
+                            tagSpan.className = 'takeaway-tag';
+                            tagSpan.innerText = tagText;
+
+                            const bodyP = document.createElement('p');
+                            bodyP.innerText = bodyText;
+
+                            card.appendChild(tagSpan);
+                            card.appendChild(bodyP);
+                        } else {
+                            const bodyP = document.createElement('p');
+                            bodyP.innerText = cleanLine;
+                            card.appendChild(bodyP);
+                        }
+                        summaryContentText.appendChild(card);
+                    });
+                } else {
+                    // Quick or Detailed paragraphs
+                    const p = document.createElement('p');
+                    p.innerText = summaryText;
+                    summaryContentText.appendChild(p);
+                }
+            }
+
+            // ---------------------------------------------------------
+            // MAIN SUMMARIZE API CALL
+            // ---------------------------------------------------------
+            async function executeSummarization() {
+                if (isProcessing) return;
+
+                hideInputAlert();
+                hideOutputAlert();
+
+                const text = dialogueInput.value.trim();
+                if (!text) {
+                    showInputAlert("Please enter or paste some content before summarizing.", "error");
+                    dialogueInput.focus();
+                    return;
+                }
+
+                const wordCount = text.split(/\s+/).filter(Boolean).length;
+                if (wordCount < 5) {
+                    showInputAlert("Please enter at least 5 words to generate a meaningful summary.", "error");
+                    return;
+                }
+
+                // UI loading state
+                isProcessing = true;
+                submitBtn.disabled = true;
+                submitBtnText.innerText = "Summarizing...";
+                outputEmptyState.style.display = 'none';
+                summaryResultContainer.classList.remove('active');
+                outputLoadingState.classList.add('active');
+
+                const styleNames = {
+                    quick: "Quick Summary",
+                    detailed: "Detailed Summary",
+                    bullet: "Bullet Points",
+                    takeaways: "Key Takeaways"
+                };
+                const lengthNames = {
+                    short: "Short",
+                    medium: "Medium",
+                    long: "Long"
+                };
+
+                summaryStyleIndicatorText.innerText = `${styleNames[selectedStyle] || 'Summary'} · ${lengthNames[selectedLength] || 'Medium'}`;
+
+                try {
+                    const response = await fetch("/summarize/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            dialogue: text,
+                            style: selectedStyle,
+                            length: selectedLength
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server returned status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const summary = (data && data.summary) ? data.summary.trim() : "";
+
+                    if (!summary) {
+                        throw new Error("No summary could be extracted from the content.");
+                    }
+
+                    currentSummary = summary;
+                    renderFormattedSummary(summary, selectedStyle);
+
+                    outputLoadingState.classList.remove('active');
+                    summaryResultContainer.classList.add('active');
+
+                    // Calculate metrics
+                    const origStats = calculateStats(text);
+                    const summaryStats = calculateStats(summary);
+                    updateOutputStats(origStats.words, summaryStats.words);
+
+                    btnCopySummary.disabled = false;
+                    btnDownloadTxt.disabled = false;
+                    btnClearOutput.disabled = false;
+
+                    // Save to history
+                    saveToHistory({
+                        timestamp: new Date().toISOString(),
+                        sourceText: text,
+                        summaryText: summary,
+                        style: selectedStyle,
+                        length: selectedLength,
+                        origWords: origStats.words,
+                        summaryWords: summaryStats.words
+                    });
+
+                    showToast("Summary generated successfully");
+
+                } catch (err) {
+                    outputLoadingState.classList.remove('active');
+                    outputEmptyState.style.display = 'flex';
+                    showOutputAlert(`Summarization failed: ${err.message}. Your input text remains safe.`, "error");
+                } finally {
+                    isProcessing = false;
+                    submitBtn.disabled = false;
+                    submitBtnText.innerText = "Summarize Text";
+                }
+            }
+
+            submitBtn.addEventListener('click', executeSummarization);
+
+            // Keyboard shortcut: Ctrl+Enter / Cmd+Enter to summarize
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    executeSummarization();
+                }
+            });
+
+            // ---------------------------------------------------------
+            // COPY SUMMARY ACTION
+            // ---------------------------------------------------------
+            btnCopySummary.addEventListener('click', async () => {
+                if (!currentSummary) return;
+                try {
+                    await navigator.clipboard.writeText(currentSummary);
+                    copyBtnText.innerText = "Copied!";
+                    btnCopySummary.style.color = "var(--success-text)";
+                    showToast("Summary copied to clipboard!");
+                    setTimeout(() => {
+                        copyBtnText.innerText = "Copy Summary";
+                        btnCopySummary.style.color = "";
+                    }, 2200);
+                } catch (err) {
+                    showOutputAlert("Could not access clipboard automatically. Please select text manually.", "error");
+                }
+            });
+
+            // ---------------------------------------------------------
+            // DOWNLOAD AS TXT
+            // ---------------------------------------------------------
+            btnDownloadTxt.addEventListener('click', () => {
+                if (!currentSummary) return;
+
+                const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                const filename = `briefly-summary-${dateStr}.txt`;
+
+                const fileHeader = [
+                    "===========================================================",
+                    "BRIEFLY AI — EXECUTIVE SUMMARY",
+                    `Generated: ${new Date().toLocaleString()}`,
+                    `Style: ${selectedStyle.toUpperCase()} | Length: ${selectedLength.toUpperCase()}`,
+                    "===========================================================\n",
+                    "--- SUMMARY ---",
+                    currentSummary,
+                    "\n===========================================================",
+                    "Briefly AI · Text-Summarizer-Web-Application",
+                    "==========================================================="
+                ].join('\n');
+
+                const blob = new Blob([fileHeader], { type: 'text/plain;charset=utf-8' });
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+
+                showToast(`Downloaded ${filename}`);
+            });
+
+            // ---------------------------------------------------------
+            // LOCAL RECENT SUMMARY HISTORY
+            // ---------------------------------------------------------
+            const HISTORY_KEY = 'briefly_history_v1';
+            const MAX_HISTORY_ITEMS = 9;
+
+            function getHistory() {
+                try {
+                    const data = localStorage.getItem(HISTORY_KEY);
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveToHistory(item) {
+                let history = getHistory();
+                history.unshift(item);
+                if (history.length > MAX_HISTORY_ITEMS) {
+                    history = history.slice(0, MAX_HISTORY_ITEMS);
+                }
+                try {
+                    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                } catch (e) {
+                    // Storage limit fallback
+                }
+                renderHistory();
+            }
+
+            function deleteHistoryItem(index) {
+                let history = getHistory();
+                history.splice(index, 1);
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                renderHistory();
+                showToast("History entry deleted");
+            }
+
+            btnClearHistory.addEventListener('click', () => {
+                if (getHistory().length === 0) return;
+                if (confirm("Clear all locally saved summary history?")) {
+                    localStorage.removeItem(HISTORY_KEY);
+                    renderHistory();
+                    showToast("History cleared");
+                }
+            });
+
+            function renderHistory() {
+                const history = getHistory();
+                historyList.innerHTML = '';
+
+                if (history.length === 0) {
+                    historyList.appendChild(historyEmptyMsg);
+                    return;
+                }
+
+                history.forEach((item, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'history-item';
+                    card.tabIndex = 0;
+                    card.setAttribute('role', 'button');
+                    card.setAttribute('aria-label', `Reopen summary from ${new Date(item.timestamp).toLocaleDateString()}`);
+
+                    const dateFormatted = new Date(item.timestamp).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    const ratio = (item.origWords > 0 && item.summaryWords > 0 && item.summaryWords < item.origWords)
+                        ? `−${Math.round((1 - (item.summaryWords / item.origWords)) * 100)}%`
+                        : '';
+
+                    card.innerHTML = `
+                        <div class="history-item-top">
+                            <span class="history-item-badge">${(item.style || 'quick').toUpperCase()}</span>
+                            <span>${dateFormatted}</span>
+                        </div>
+                        <div class="history-item-snippet">${escapeHtml(item.summaryText)}</div>
+                        <div class="history-item-footer">
+                            <span>${item.summaryWords} words ${ratio ? `(${ratio})` : ''}</span>
+                            <button type="button" class="btn-history-delete" data-index="${idx}" title="Delete this entry">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+
+                    // Click to restore
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('.btn-history-delete')) return;
+                        restoreHistoryItem(item);
+                    });
+
+                    card.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            restoreHistoryItem(item);
+                        }
+                    });
+
+                    // Delete button
+                    const delBtn = card.querySelector('.btn-history-delete');
+                    delBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteHistoryItem(idx);
+                    });
+
+                    historyList.appendChild(card);
+                });
+            }
+
+            function restoreHistoryItem(item) {
+                dialogueInput.value = item.sourceText || '';
+                updateInputStats();
+
+                selectedStyle = item.style || 'quick';
+                document.querySelectorAll('[data-style]').forEach(b => {
+                    const match = b.dataset.style === selectedStyle;
+                    b.classList.toggle('active', match);
+                    b.setAttribute('aria-checked', match ? 'true' : 'false');
+                });
+                activeStyleDesc.innerText = STYLE_DESCRIPTIONS[selectedStyle] || '';
+
+                selectedLength = item.length || 'medium';
+                document.querySelectorAll('[data-length]').forEach(b => {
+                    const match = b.dataset.length === selectedLength;
+                    b.classList.toggle('active', match);
+                    b.setAttribute('aria-checked', match ? 'true' : 'false');
+                });
+                activeLengthDesc.innerText = LENGTH_DESCRIPTIONS[selectedLength] || '';
+
+                currentSummary = item.summaryText || '';
+                renderFormattedSummary(currentSummary, selectedStyle);
+
+                outputEmptyState.style.display = 'none';
+                outputLoadingState.classList.remove('active');
+                summaryResultContainer.classList.add('active');
+
+                const styleNames = { quick: "Quick Summary", detailed: "Detailed Summary", bullet: "Bullet Points", takeaways: "Key Takeaways" };
+                const lengthNames = { short: "Short", medium: "Medium", long: "Long" };
+                summaryStyleIndicatorText.innerText = `${styleNames[selectedStyle] || 'Summary'} · ${lengthNames[selectedLength] || 'Medium'}`;
+
+                updateOutputStats(item.origWords || 0, item.summaryWords || 0);
+
+                btnCopySummary.disabled = false;
+                btnDownloadTxt.disabled = false;
+                btnClearOutput.disabled = false;
+
+                document.getElementById('workspace').scrollIntoView({ behavior: 'smooth' });
+                showToast("Restored saved summary from history");
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            // ---------------------------------------------------------
+            // HERO CTA BUTTONS
+            // ---------------------------------------------------------
+            const heroStartBtn = document.getElementById('hero-start-btn');
+            if (heroStartBtn) {
+                heroStartBtn.addEventListener('click', (e) => {
+                    const ws = document.getElementById('workspace');
+                    if (ws) {
+                        e.preventDefault();
+                        ws.scrollIntoView({ behavior: 'smooth' });
+                        if (dialogueInput) dialogueInput.focus();
+                    }
+                });
+            }
+
+            if (heroSampleBtn) {
+                heroSampleBtn.addEventListener('click', () => {
+                    loadSampleText();
+                    const ws = document.getElementById('workspace');
+                    if (ws) {
+                        ws.scrollIntoView({ behavior: 'smooth' });
+                        if (dialogueInput) dialogueInput.focus();
+                    }
+                });
+            }
+
+            // ---------------------------------------------------------
+            // INITIALIZATION
+            // ---------------------------------------------------------
+            initTheme();
+            updateInputStats();
+            renderHistory();
+
+        })();
     </script>
 </body>
 </html>
