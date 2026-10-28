@@ -691,6 +691,37 @@ AI/ML Engineering Student passionate about:
 
 ---
 
+# 🤝 Contributors
+
+A huge thank you to everyone who has contributed to this project! 💛
+
+---
+
+## 🌟 Krupa B T — *Briefly AI Redesign*
+
+| | |
+|---|---|
+| **GitHub** | [@krupabt](https://github.com/krupabt) |
+| **Contribution** | [PR #1 — `feature/briefly-ai-redesign`](https://github.com/sharathgowdaur-jpg/Text-Summarizer-Web-Application/pull/1) |
+| **Merged** | ✅ October 2026 |
+
+### 🛠️ What Krupa contributed:
+
+* 🎨 **Briefly AI Redesign** — Completely redesigned the workspace with a modern **"Briefly AI"** branding and enhanced layout
+* ⚙️ **Enhanced Summarization Controls** — Added advanced controls for summarization length, style, and output configuration
+* 🧪 **Test Suite** — Added comprehensive test coverage for the summarization features
+* 🔧 **Improved UX** — Better user experience with cleaner interaction patterns and feedback mechanisms
+
+> *"A fresh and modern take on the summarizer — the Briefly AI redesign brings a polished, professional feel to the application."*
+
+---
+
+### 🤝 Want to Be Listed Here?
+
+We’d love your help! Check the [Contributing](#-contributing) section and open a PR — all contributors get credited right here. 🌟
+
+---
+
 # ⭐ Support
 
 If you find this project useful:
